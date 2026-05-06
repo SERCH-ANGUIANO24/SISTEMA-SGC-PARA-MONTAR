@@ -1,0 +1,51 @@
+{{-- COMPONENTE VISOR DE DOCUMENTOS DEL MÓDULO DE COMPETENCIAS --}}
+{{-- MUESTRA EL CONTENIDO DEL ARCHIVO SEGÚN SU EXTENSIÓN USANDO EL MÉTODO MÁS ADECUADO --}}
+<div class="container-fluid p-0">
+
+    {{-- CONVIERTE LA EXTENSIÓN A MINÚSCULAS PARA HACER LAS COMPARACIONES SIN IMPORTAR EL FORMATO --}}
+    @php
+        $extension = strtolower($extension ?? '');
+    @endphp
+
+    {{-- CASO 1: ARCHIVOS CSV --}}
+    {{-- LOS CSV NO SON PREVISUALIZABLES EN EL NAVEGADOR, SE MUESTRA UN MENSAJE INFORMATIVO --}}
+    {{-- Y UN BOTÓN PARA DESCARGAR EL ARCHIVO EN SU LUGAR --}}
+    @if(in_array($extension, ['csv']))
+        <div class="d-flex flex-column justify-content-center align-items-center h-100" style="min-height: 60vh;">
+            <i class="bi bi-file-earmark-spreadsheet" style="font-size: 5rem; color: #800000;"></i>
+            <h5 class="mt-4 mb-3">Vista previa no disponible</h5>
+            <p class="text-muted text-center mb-4">
+                Los archivos CSV no se pueden visualizar en el navegador.
+            </p>
+            <div class="alert alert-info d-flex align-items-center" role="alert" style="max-width: 500px;">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <span>Puedes descargar el archivo para ver su contenido.</span>
+            </div>
+            <a href="{{ route('auditoria.competencias.document.download', $docId ?? '') }}" class="btn text-white mt-3" style="background-color: #800000;">
+                <i class="bi bi-download me-1"></i> Descargar CSV
+            </a>
+        </div>
+
+    {{-- CASO 2: ARCHIVOS DE OFFICE (WORD, EXCEL, POWERPOINT) --}}
+    {{-- SE USA EL VISOR EN LÍNEA DE MICROSOFT OFFICE APPS PARA MOSTRARLOS EN UN IFRAME --}}
+    {{-- LA URL DEL ARCHIVO SE CODIFICA PARA PASARLA COMO PARÁMETRO AL VISOR DE MICROSOFT --}}
+    @elseif(in_array($extension, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']))
+        <iframe src="https://view.officeapps.live.com/op/embed.aspx?src={{ urlencode($fileUrl) }}"
+                style="width: 100%; height: 80vh; border: none;">
+        </iframe>
+
+    {{-- CASO 3: ARCHIVOS DE IMAGEN (JPG, JPEG, PNG, GIF, BMP, SVG) --}}
+    {{-- SE MUESTRA LA IMAGEN DIRECTAMENTE CENTRADA Y AJUSTADA AL CONTENEDOR --}}
+    @elseif(in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg']))
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <img src="{{ $fileUrl }}" class="img-fluid" style="max-height: 80vh; object-fit: contain;">
+        </div>
+
+    {{-- CASO 4: CUALQUIER OTRO FORMATO (PDF, TXT, ETC.) --}}
+    {{-- SE INTENTA MOSTRAR EL ARCHIVO DIRECTAMENTE EN UN IFRAME DEL NAVEGADOR --}}
+    @else
+        <iframe src="{{ $fileUrl }}"
+                style="width: 100%; height: 80vh; border: none;">
+        </iframe>
+    @endif
+</div>
